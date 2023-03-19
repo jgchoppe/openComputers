@@ -30,10 +30,9 @@ function QueryStatus(firstTime)
             name = globalArgv[1]
         }
     })
-    print("params: " .. params)
     local res = gModem.send(managerAddress, 80, params)
     if (res == true) and (firstTime == true) then
-        print('Trying to get "' .. globalArgv[1], '" status...')
+        print('Trying to get "' .. globalArgv[1] .. '" status...')
     end
 end
 
@@ -57,7 +56,7 @@ while globalCondition do
         local res = json.unserialize(msgRaw)
         if (res.command == Commands.CLIReactorStatusCallback) then
             if (res.data.status ~= nil) then
-                print('"' .. globalArgv[1], '" status : ' .. res.data.status)
+                print('Status of "' .. globalArgv[1] .. '" : ', res.data.status)
                 globalCondition = false
                 callbackStatus = true
             else
