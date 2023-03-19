@@ -86,6 +86,7 @@ while globalCondition do
         local res = json.unserialize(msgRaw)
         if (res.command == Commands.RegisterCallback) then
             if (res.data.success == true) and (res.data.managerAddress ~= nil) then
+                ---@diagnostic disable-next-line: undefined-field
                 os.setenv("MAIN_ADDRESS", res.data.managerAddress)
                 print('Successfully connected to main Manager.')
                 globalCondition = false
