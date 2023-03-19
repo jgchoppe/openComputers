@@ -21,7 +21,7 @@ local reactorName = globalArgv[1]
 
 -- Manager
 local managerName = globalArgv[2]
-local managerAdress = nil
+local managerAddress = nil
 
 
 --------------------
@@ -86,8 +86,8 @@ function RegisterCallback(data)
     if (data.success == true) then
         Log('Successfully registered to "' .. managerName .. '" on port: ' .. port)
         print('Reactor name: ' .. reactorName)
-        if (data.managerAdress ~= nil) then
-            managerAdress = data.managerAdress
+        if (data.managerAddress ~= nil) then
+            managerAddress = data.managerAddress
         end
         callbackRegister = true
     else
@@ -110,13 +110,16 @@ function GetReactorStatus(data)
 
     print('Get status :', status)
     print('commands test', Commands.ReactorStatusCallback)
-    local res = gModem.send(managerAdress, port, json.serialize({
-        command = Commands.ReactorStatusCallback,
+    local params = json.serialize({
+        command = "REACTOR_STATUS_CALLBACK",
         data = {
             status = status,
             senderAddress = data.senderAddress
         }
-    }))
+    })
+
+    local res = gModem.send(managerAddress, port, params)
+    print("res", res)
     if (res == true) then
         Log('Successfully sent status to manager')
     else
