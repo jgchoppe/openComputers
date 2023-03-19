@@ -87,10 +87,14 @@ function ReactorStop(data)
 end
 
 function ReactorStatus(data)
+    print("Getting ReactorStatus request...")
     local r = FindReactor(data.name)
     if r == nil then
         return
     end
+
+    print(r.name)
+    print(r.address)
 
     m.send(r.address, port, json.serialize({
         command = Commands.ReactorStatus,
@@ -98,6 +102,7 @@ function ReactorStatus(data)
             senderAddress = data.machineAddress
         }
     }))
+    print("Sending ReactorStatus request...")
 end
 
 function ReactorStatusCallback(data)
