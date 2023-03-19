@@ -67,8 +67,6 @@ end
 --------------------
 gModem.open(port)
 
-gTerm.clear()
-
 local firstTime = true
 
 -- Main Loop
@@ -87,7 +85,8 @@ while globalCondition do
     if (msgRaw ~= nil) then
         local res = json.unserialize(msgRaw)
         if (res.command == Commands.RegisterCallback) then
-            if (res.data.success == true) then
+            if (res.data.success == true) and (res.data.managerAddress ~= nil) then
+                os.setenv("MAIN_ADDRESS", res.data.managerAddress)
                 print('Successfully connected to main Manager.')
                 globalCondition = false
                 callbackRegister = true
