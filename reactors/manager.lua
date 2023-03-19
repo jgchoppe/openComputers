@@ -93,7 +93,7 @@ function ReactorStatus(data)
     end
 
     m.send(r.address, port, json.serialize({
-        command = Commands.CLIReactorStatus,
+        command = Commands.ReactorStatus,
         data = {
             senderAddress = data.machineAddress
         }
@@ -101,13 +101,11 @@ function ReactorStatus(data)
 end
 
 function ReactorStatusCallback(data)
-    local r = FindReactor(data.name)
-    if r == nil then
-        return
-    end
-
-    m.send(r.address, port, json.serialize({
-        command = Commands.CLIReactorStatus
+    m.send(data.senderAddress, port, json.serialize({
+        command = Commands.CLIReactorStatusCallback,
+        data = {
+            status = data.status,
+        }
     }))
 end
 
