@@ -108,8 +108,6 @@ end
 function GetReactorStatus(data)
     local status = true
 
-    print('Get status :', status)
-    print('commands test', Commands.ReactorStatusCallback)
     local params = json.serialize({
         command = "REACTOR_STATUS_CALLBACK",
         data = {
@@ -119,7 +117,6 @@ function GetReactorStatus(data)
     })
 
     local res = gModem.send(managerAddress, port, params)
-    print("res", res)
     if (res == true) then
         Log('Successfully sent status to manager')
     else
@@ -143,7 +140,6 @@ function HandleMsg(data)
     if (data == nil) then
         return nil
     end
-    print('data', data)
     local msg = json.unserialize(data)
     
     if handler[msg.command] ~= nil then
