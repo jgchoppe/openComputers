@@ -38,10 +38,6 @@ function ValidateArgs(args)
         os.exit()
     end
 
-    if (args[3] ~= nil) then
-        port = args[3] + 0
-    end
-
     return true
 end
 
@@ -86,6 +82,7 @@ end
 
 
 function RegisterCallback(data)
+    print('enter in register callback' .. data)
     if (data.success == true) then
         print('Successfully registered to "' .. managerName .. '" on port: ' .. port .. '\nReactor name: ' .. reactorName)
         if (data.managerAdress ~= nil) then
@@ -117,6 +114,7 @@ local handler = {
 }
 
 function HandleMsg(data)
+    print('data', data)
     if (data == nil) then
         return nil
     end
@@ -147,7 +145,9 @@ while globalCondition do
     local _, _, _, _, _, msgRaw = gEvent.pull(timeoutTime, "modem_message")
 
     -- Handle message
-    HandleMsg(msgRaw)
+    if (msgRaw ~= nil) then
+        HandleMsg(msgRaw)
+    end
 
     if (callbackRegister == false) then
         RegisterTimeout()
