@@ -65,49 +65,81 @@ function FindManager(mName)
 end
 
 function ReactorStart(data)
-    FindReactor(data.name)
-    m.send()
+    local r = FindReactor(data.name)
+    if r == nil then
+        return
+    end
+
+    m.send(r.address, port, json.serialize({
+        command = Commands.CLIReactorStart
+    }))
 end
 
-function ReactorStop()
+function ReactorStop(data)
+    local r = FindReactor(data.name)
+    if r == nil then
+        return
+    end
 
+    m.send(r.address, port, json.serialize({
+        command = Commands.CLIReactorStop
+    }))
 end
 
-function ReactorStatus()
-    
+function ReactorStatus(data)
+    local r = FindReactor(data.name)
+    if r == nil then
+        return
+    end
+
+    m.send(r.address, port, json.serialize({
+        command = Commands.CLIReactorStatus,
+        data = {
+            senderAddress = data.machineAddress
+        }
+    }))
+end
+
+function ReactorStatusCallback(data)
+    local r = FindReactor(data.name)
+    if r == nil then
+        return
+    end
+
+    m.send(r.address, port, json.serialize({
+        command = Commands.CLIReactorStatus
+    }))
 end
 
 function Register(data)
     print(data.machineName)
-    print(data.address)
+    print(data.machineAddress)
     if data.managerName ~= name then
         print("fail")
         return
     end
 
     if data.type == "cli" then
-        m.send(data.address, port, json.serialize({
-            address = m.address
+        print("CLI connection")
+        print(data.machineAddress)
+        m.send(data.machineAddress, port, json.serialize({
+            command = Commands.RegisterCallback,
+            data = {
+                managerAddress = m.address,
+                success = true
+            }
         }))
         return
     end
     if data.type == "reactor" then
-        if FindReactor(data.machineName) ~= nil then
-            m.send(data.address, port, json.serialize({
-                command = Commands.RegisterCallback,
-                data = {
-                    success = false
-                }
-            }))
-        end
         reactors[data.machineName] = {
             name = data.machineName,
-            address = data.address
+            address = data.machineAddress
         }
         print("ok")
     else if data.type == "manager" then
         if FindManager(data.machineName) ~= nil then
-            m.send(data.address, port, json.serialize({
+            m.send(data.machineAddress, port, json.serialize({
                 command = Commands.RegisterCallback,
                 data = {
                     success = false
@@ -116,14 +148,14 @@ function Register(data)
         end
             managers[data.machineName] = {
                 name = data.machineName,
-                address = data.address
+                address = data.machineAddress
             }
         end
     end
 
     -- m.send("35dbc89b-864a-47b3-8057-9b063e233288", 80, "test")
 
-    m.send(data.address, port, json.serialize({
+    m.send(data.machineAddress, port, json.serialize({
         command = Commands.RegisterCallback,
         data = {
             success = true,
@@ -137,15 +169,15 @@ local handler = {
     [Commands.CLIReactorStart] = ReactorStart,
     [Commands.CLIReactorStop] = ReactorStop,
     [Commands.CLIReactorStatus] = ReactorStatus,
+    [Commands.ReactorStatusCallback] = ReactorStatusCallback
 }
 
-function HandleMsg(data, remoteAddress)
+function HandleMsg(data)
     print(data)
     local msg = json.unserialize(data)
     print(msg.command)
     
     if handler[msg.command] ~= nil then
-    msg.data.address = remoteAddress
         handler[msg.command](msg.data)
     end
 end
@@ -161,8 +193,8 @@ end
 local globalCondition = true
 
 while globalCondition do
-    local _, remoteAddress, _, _, _, data = event.pull("modem_message")
+    local _, _, _, _, _, data = event.pull("modem_message")
     if data ~= nil then
-        HandleMsg(data, remoteAddress)
+        HandleMsg(data)
     end
 end
