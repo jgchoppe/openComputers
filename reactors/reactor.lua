@@ -106,7 +106,7 @@ function StopReactor()
 end
 
 function GetReactorStatus(data)
-    local status = true
+    local status = gReactor.isProcessing()
 
     local params = json.serialize({
         command = "REACTOR_STATUS_CALLBACK",
@@ -124,6 +124,45 @@ function GetReactorStatus(data)
     end
 end
 
+function GetReactorData(data)
+    local status = gReactor.isProcessing()
+    local activeFuel, energy, heat, timeCurrent, timeTotal = nil, nil, nil, nil, nil
+
+    if (status == true) then
+        activeFuel = gReactor.getFissionFuelName()
+        energy = gReactor.getReactorProcessPower()
+        heat = gReactor.getReactorCoolingRate()
+        timeCurrent = gReactor.getCurrentProcessTime()
+        timeTotal = gReactor.getFissionFuelTime()
+    end
+
+    print("activeFuel", activeFuel)
+    print("energy", energy)
+    print("heat", heat)
+    print("timeCurrent", timeCurrent)
+    print("timeTotal", timeTotal)
+
+    local params = json.serialize({
+        command = "REACTOR_DATA_CALLBACK",
+        data = {
+            isActive = status,
+            activeFuel = activeFuel,
+            energy = energy,
+            heat = heat,
+            timeCurrent = timeCurrent,
+            timeTotal = timeTotal,
+            senderAddress = data.senderAddress
+        }
+    })
+
+    local res = gModem.send(managerAddress, port, params)
+    if (res == true) then
+        Log('Successfully sent data to manager')
+    else
+        Log('Failed when sending data to manager')
+    end
+end
+
 
 -------------------
 --    Handler    --
@@ -134,6 +173,7 @@ local handler = {
     [Commands.ReactorStart] = StartReactor,
     [Commands.ReactorStop] = StopReactor,
     [Commands.ReactorStatus] = GetReactorStatus,
+    [Commands.ReactorData] = GetReactorData,
 }
 
 function HandleMsg(data)

@@ -19,6 +19,7 @@ local timeoutTime = 5
 local managerAddress = nil
 local status = nil
 
+
 if (globalArgv[1] == nil) then
     print('./display-reactor <REACTOR_NAME> (<MAIN_MANAGER_NAME default:main)')
     os.exit()
@@ -34,6 +35,80 @@ end
 local reactorName = GetArg(globalArgv[1], "reactor")
 local managerName = GetArg(globalArgv[2], "main")
 
+
+local windowWidth = reactorName:len() + 4
+local windowHeight = windowWidth / 2;
+
+if (windowHeight % 1 ~= 0) then
+    windowHeight = windowHeight - 0.5
+end
+
+if (windowHeight % 2 == 0) then
+    windowHeight = windowHeight - 1
+end
+
+function RegisterCallback(data)
+    if (data.success == true) then
+        Log('Successfully registered to "' .. managerName .. '" on port: ' .. port)
+        print('Currently monitoring : ' .. reactorName)
+        if (data.managerAddress ~= nil) then
+            managerAddress = data.managerAddress
+        end
+        callbackRegister = true
+        gGpu.setResolution(windowWidth, windowHeight)
+    else
+        Log('Failed when registering to "' .. managerName .. '" on port "' .. port .. '"')
+    end
+end
+
+function Log(msg)
+    print("[" .. os.date() .. "] " .. msg)
+end
+
+
+--------------------
+-- Drawing Functions --
+--------------------
+local bgcolor = gGpu.getBackground()
+
+function DrawStatus(reactorStatus)
+    gTerm.clear()
+    local color = 0xFF0000
+    if (reactorStatus == true) then
+        color = 0x00FF00
+    end
+    -- Draw a square for status
+    gGpu.setBackground(color)
+    gGpu.fill(1, 1, windowWidth, windowHeight, " ")
+
+    -- Write the reactor name
+    gGpu.setBackground(color)
+    gGpu.setForeground(0x000000)
+    gGpu.set(3, ((windowHeight - 1) / 2) + 1, reactorName)
+end
+
+function ShowCall(callStatus)
+    -- local color = 0xFF0000
+    -- if (callStatus == true) then
+    --     color = 0x00FF00
+    -- end
+    -- gGpu.setBackground(color)
+    -- gGpu.fill(152, 47, 9, 5, " ")
+    -- gGpu.setBackground(bgcolor)
+
+    -- os.execute("sleep 0.05")
+
+    -- gGpu.setBackground(bgcolor)
+    -- gGpu.fill(152, 47, 9, 5, " ")
+    -- gGpu.setBackground(bgcolor)
+end
+
+--------------------
+-- Loop Functions --
+--------------------
+
+---- Query ----
+
 function Register(firstTime)
     local params = {
         command = Commands.Register,
@@ -48,50 +123,8 @@ function Register(firstTime)
     if (res == true) and (firstTime == true) then
         print("Trying to register...")
     end
-end
+    return res
 
-function RegisterCallback(data)
-    if (data.success == true) then
-        Log('Successfully registered to "' .. managerName .. '" on port: ' .. port)
-        print('Currently monitoring : ' .. reactorName)
-        if (data.managerAddress ~= nil) then
-            managerAddress = data.managerAddress
-        end
-        callbackRegister = true
-    else
-        Log('Failed when registering to "' .. managerName .. '" on port "' .. port .. '"')
-    end
-end
-
-function Log(msg)
-    print("[" .. os.date() .. "] " .. msg)
-end
-
---------------------
--- Loop Functions --
---------------------
-
-function DrawReactorInfo(reactorName, status)
-    local bgcolor = gGpu.getBackground()
-
-    gTerm.clear()
-    -- Calculate all values before changing the screen
-    -- This prevents flickering
-
-    -- Start graphing
-
-    -- Rest screen area and set background color
-    -- gGpu.setBackground(bgcolor)
-    -- gGpu.fill(x, y, mx, my, " ")
-
-    -- Fill in the bar
-    gGpu.setBackground(0xFF0000)
-    gGpu.fill(1, 1, 10, 10, " ")
-
-    -- Write the reactor name
-    gGpu.setBackground(bgcolor)
-    gGpu.setForeground(0xffffff)
-    gGpu.set(1, 1, reactorName)
 end
 
 function QueryStatus()
@@ -103,10 +136,10 @@ function QueryStatus()
         }
     })
     local res = gModem.send(managerAddress, 80, params)
-    if (res == true) then
-        print('Trying to get "' .. reactorName .. '" status...')
-    end
+    return res
 end
+
+---- Callback ----
 
 function StatusCallback(data)
     if (data.status ~= nil) then
@@ -114,7 +147,7 @@ function StatusCallback(data)
     else
         print('Callback : Failed when getting "' .. reactorName, '" status.')
     end
-    print('Status of "' .. reactorName .. '" : ', status)
+    DrawStatus(status)
 end
 
 -------------------
@@ -137,6 +170,7 @@ function HandleMsg(data)
     end
 end
 
+
 ----------------
 --    Main    --
 ----------------
@@ -144,11 +178,16 @@ gModem.open(port)
 
 
 while globalCondition do
+    local res = nil
     if (callbackRegister == false) then
-        Register(firstTime)
+        res = Register(firstTime)
         firstTime = false
     else
-        QueryStatus()
+        res = QueryStatus()
+    end
+
+    if (res ~= nil) then
+        ShowCall(res)
     end
     -- Wait for an inbound message
     local _, _, _, _, _, msgRaw = gEvent.pull(timeoutTime, "modem_message")
@@ -161,6 +200,7 @@ while globalCondition do
     if (msgRaw ~= nil) then
         -- LogMsg(msgRaw)
         HandleMsg(msgRaw)
+        os.execute("sleep 5")
     end
 
     if (callbackRegister == false) then

@@ -114,6 +114,40 @@ function ReactorStatusCallback(data)
     }))
 end
 
+function ReactorData(data)
+    print("Getting ReactorData request...")
+    local r = FindReactor(data.name)
+    if r == nil then
+        return
+    end
+
+    print(r.name)
+    print(r.address)
+
+    m.send(r.address, port, json.serialize({
+        command = Commands.ReactorData,
+        data = {
+            senderAddress = data.machineAddress
+        }
+    }))
+    print("Sending ReactorData request...")
+end
+
+function ReactorDataCallback(data)
+    m.send(data.senderAddress, port, json.serialize({
+        command = Commands.CLIReactorDataCallback,
+        data = {
+            isActive = data.isActive,
+            activeFuel = data.activeFuel,
+            energy = data.energy,
+            heat = data.heat,
+            timeCurrent = data.timeCurrent,
+            timeTotal = data.timeTotal,
+            status = data.status,
+        }
+    }))
+end
+
 function Register(data)
     print(data.machineName)
     print(data.machineAddress)
@@ -172,7 +206,9 @@ local handler = {
     [Commands.CLIReactorStart] = ReactorStart,
     [Commands.CLIReactorStop] = ReactorStop,
     [Commands.CLIReactorStatus] = ReactorStatus,
-    [Commands.ReactorStatusCallback] = ReactorStatusCallback
+    [Commands.ReactorStatusCallback] = ReactorStatusCallback,
+    [Commands.CLIReactorData] = ReactorData,
+    [Commands.ReactorDataCallback] = ReactorDataCallback,
 }
 
 function HandleMsg(data)
