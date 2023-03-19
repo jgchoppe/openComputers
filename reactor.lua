@@ -9,7 +9,10 @@ local Commands = require('enums.commands')
 
 local globalArgv = { ... }
 local port = 80
-local timeoutTime = 10 -- in seconds
+local timeoutTime = 4 -- in seconds
+
+local globalCondition = true
+local callbackRegister = false
 
 -- Reactor
 local reactorName = globalArgv[1]
@@ -71,6 +74,11 @@ function ErrorMessage(msg)
 end
 
 
+function RegisterTimeout()
+    ErrorMessage('Timed out on registering to "' .. managerName .. '" on port "' .. port .. '"')
+    globalCondition = false
+end
+
 
 --------------------
 -- Loop Functions --
@@ -93,48 +101,57 @@ function RegisterCallback(data)
         if (data.managerAdress ~= nil) then
             managerAdress = data.managerAdress
         end
-        return true
+        callbackRegister = true
     else
         ErrorMessage('Failed when registering to "' .. managerName .. '" on port "' .. port .. '"')
     end
-    return false
+end
+
+
+-------------------
+--    Handler    --
+-------------------
+
+local handler = {
+    [Commands.RegisterCallback] = RegisterCallback,
+}
+
+function HandleMsg(data)
+    if (data == nil) then
+        return nil
+    end
+    local msg = json.unserialize(data)
+    
+    if handler[msg.command] ~= nil then
+        handler[msg.command](msg.data)
+    end
 end
 
 
 --------------------
 --      Main      --
 --------------------
-
-local globalCondition = true
-local callbackRegister = false
+gModem.open(port)
 
 ValidateArgs(globalArgv)
 
-
 gTerm.clear()
-
 
 Register()
 
-function CheckRegisterCallback()
-    ErrorMessage('Failed when registering to "' .. managerName .. '" on port "' .. port .. '"')
-    if (callbackRegister == false) then
-        globalCondition = false
-    end
-end
+
+-- Main Loop
 
 while globalCondition do
     -- Wait for an inbound message
     local _, _, _, _, _, msgRaw = gEvent.pull(timeoutTime, "modem_message")
 
-    -- Parse message
-    local command, data = ParseMsg(msgRaw)
+    -- Handle message
+    HandleMsg(msgRaw)
 
-    if (command == Commands.RegisterCallback) then
-        callbackRegister = RegisterCallback(data)
+    if (callbackRegister == false) then
+        RegisterTimeout()
     end
-
-    CheckRegisterCallback()
 end
 
 os.exit()
