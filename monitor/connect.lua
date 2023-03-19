@@ -4,6 +4,7 @@ local gEvent = require('event')
 local gTerm = require("term")
 local gGpu = gComponent.gpu
 local gModem = gComponent.modem
+local fs = gComponent.filesystem
 
 local Commands = require('enums.commands')
 
@@ -88,6 +89,7 @@ while globalCondition do
             if (res.data.success == true) and (res.data.managerAddress ~= nil) then
                 os.setenv("MAIN_ADDRESS", res.data.managerAddress)
                 print('Successfully connected to main Manager.')
+                fs.
                 globalCondition = false
                 callbackRegister = true
             else
