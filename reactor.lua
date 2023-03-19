@@ -84,16 +84,6 @@ end
 -- Loop Functions --
 --------------------
 
-function ParseMsg(msgRaw)
-    if (msgRaw == nil) then
-        return nil
-    end
-    local msgParsed = json.unserialize(msgRaw)
-    local command = msgParsed.command
-    local data = msgParsed.data
-
-    return command, data
-end
 
 function RegisterCallback(data)
     if (data.success == true) then
@@ -107,6 +97,14 @@ function RegisterCallback(data)
     end
 end
 
+function StartReactor(data)
+    
+end
+
+function StopReactor(data)
+    
+end
+
 
 -------------------
 --    Handler    --
@@ -114,6 +112,8 @@ end
 
 local handler = {
     [Commands.RegisterCallback] = RegisterCallback,
+    [Commands.ReactorStart] = StartReactor,
+    [Commands.ReactorStop] = StopReactor,
 }
 
 function HandleMsg(data)

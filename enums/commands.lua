@@ -6,6 +6,7 @@ local GlobalCommands =
     ReactorStart = "REACTOR_START",
     ReactorStop = "REACTOR_STOP",
     ReactorList = "REACTOR_LIST", -- Only for manager
+    ReactorStatus = "REACTOR_STATUS",
 
     ManagerStart = "MANAGER_START",
     ManagerStop = "MANAGER_STOP",
