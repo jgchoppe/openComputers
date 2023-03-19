@@ -122,8 +122,8 @@ function Register(data)
         return
     end
 
-    if data.type == "cli" then
-        print("CLI connection")
+    if data.type == "cli" or data.type == "monitor" then
+        print(data.type .. " connection")
         print(data.machineAddress)
         m.send(data.machineAddress, port, json.serialize({
             command = Commands.RegisterCallback,
