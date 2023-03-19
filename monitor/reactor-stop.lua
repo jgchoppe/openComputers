@@ -5,10 +5,7 @@ local gModem = gComponent.modem
 local Commands = require('enums.commands')
 local globalArgv = { ... }
 
-local timeoutTime = 4
-
-local globalCondition = true
-local callbackStatus = false
+local port = 80
 
 if (globalArgv[1] == nil) then
     print("reactor-status <REACTOR_NAME>")
@@ -30,6 +27,7 @@ function QueryStop()
             name = globalArgv[1]
         }
     })
+    gModem.send(managerAddress, port, params)
 end
 
 QueryStop()
