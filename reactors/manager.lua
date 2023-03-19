@@ -71,7 +71,7 @@ function ReactorStart(data)
     end
 
     m.send(r.address, port, json.serialize({
-        command = Commands.CLIReactorStart
+        command = Commands.ReactorStart
     }))
 end
 
@@ -82,7 +82,7 @@ function ReactorStop(data)
     end
 
     m.send(r.address, port, json.serialize({
-        command = Commands.CLIReactorStop
+        command = Commands.ReactorStop
     }))
 end
 
@@ -178,20 +178,15 @@ local handler = {
 function HandleMsg(data)
     print(data)
     local msg = json.unserialize(data)
-    print(msg.command)
+    -- print(msg.command)
+    if msg.command == nil then
+        return
+    end
     
     if handler[msg.command] ~= nil then
         handler[msg.command](msg.data)
     end
 end
-
--- local exampleData = {
---     command = "test"
--- }
-
--- local dataToSend = json.serialize(exampleData)
-
--- HandleMsg(dataToSend)
 
 local globalCondition = true
 
