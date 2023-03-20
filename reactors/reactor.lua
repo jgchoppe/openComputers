@@ -131,16 +131,10 @@ function GetReactorData(data)
     if (status == true) then
         activeFuel = gReactor.getFissionFuelName()
         energy = gReactor.getReactorProcessPower()
-        heat = gReactor.getReactorCoolingRate()
+        heat = gReactor.getReactorProcessHeat()
         timeCurrent = gReactor.getCurrentProcessTime()
         timeTotal = gReactor.getFissionFuelTime()
     end
-
-    print("activeFuel", activeFuel)
-    print("energy", energy)
-    print("heat", heat)
-    print("timeCurrent", timeCurrent)
-    print("timeTotal", timeTotal)
 
     local params = json.serialize({
         command = "REACTOR_DATA_CALLBACK",

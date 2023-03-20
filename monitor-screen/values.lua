@@ -36,8 +36,8 @@ local reactorName = GetArg(globalArgv[1], "reactor")
 local managerName = GetArg(globalArgv[2], "main")
 
 
-local windowWidth = 50
-local windowHeight = 25;
+local windowWidth = 26
+local windowHeight = 13;
 
 
 function RegisterCallback(data)
@@ -48,7 +48,7 @@ function RegisterCallback(data)
             managerAddress = data.managerAddress
         end
         callbackRegister = true
-        -- gGpu.setResolution(windowWidth, windowHeight)
+        gGpu.setResolution(windowWidth, windowHeight)
     else
         Log('Failed when registering to "' .. managerName .. '" on port "' .. port .. '"')
     end
@@ -67,19 +67,49 @@ local bgcolor = gGpu.getBackground()
 function DrawData(data)
     -- isActive, activeFuel, energy, heat, timeCurrent, timeTotal
 
-    -- gTerm.clear()
-    -- local color = 0xFF0000
-    -- if (reactorStatus == true) then
-    --     color = 0x00FF00
-    -- end
-    -- -- Draw a square for status
-    -- gGpu.setBackground(color)
-    -- gGpu.fill(1, 1, windowWidth, windowHeight, " ")
+    gTerm.clear()
 
-    -- -- Write the reactor name
-    -- gGpu.setBackground(color)
-    -- gGpu.setForeground(0x000000)
-    -- gGpu.set(3, ((windowHeight - 1) / 2) + 1, reactorName)
+    if (data.isActive == false) then
+        return;
+    end
+
+    gGpu.setBackground(bgcolor)
+    gGpu.setForeground(0xFFFFFF)
+    
+    gGpu.set(1, 1, "Fuel")
+    gGpu.set(windowWidth - data.activeFuel:len() + 1, 1, data.activeFuel)
+
+
+    gGpu.set(1, 6, "Energy")
+    local energy = "0"
+    if (data.energy ~= nil) then
+        energy = string.format("%.1f", data.energy)
+    end
+    gGpu.set(windowWidth - (tostring(data.energy):len() + 4), 6, energy .. ' RF/t')
+
+
+    local heat = "0"
+    if (data.heat ~= nil) then
+        heat = string.format("%.1f", data.heat)
+    end
+    gGpu.set(1, 8, "Cooling")
+    gGpu.set(windowWidth - (tostring(heat):len() + 3), 8, heat .. ' H/t')
+
+
+    local processRate = data.timeCurrent * 100 / data.timeTotal
+    local posX = windowWidth - 3
+
+    if (data.processRate == 100) then
+        posX = posX - 1
+    end
+
+    local processRateFmt = "0.0"
+    if (processRate ~= nil) then
+        posX = posX - 1
+        processRateFmt = string.format("%.1f", processRate)
+    end
+    gGpu.set(1, 13, "Current process")
+    gGpu.set(posX, 13, processRateFmt .. "%")
 end
 
 --------------------
@@ -129,13 +159,6 @@ function DataCallback(data)
     else
         print('Callback : Failed when getting "' .. reactorName, '" status.')
     end
-
-    print('isActive', data.isActive)
-    print('activeFuel', data.activeFuel)
-    print('energy', data.energy)
-    print('heat', data.heat)
-    print('timeCurrent', data.timeCurrent)
-    print('timeTotal', data.timeTotal)
 end
 
 -------------------
